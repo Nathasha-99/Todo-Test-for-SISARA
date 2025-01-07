@@ -29,9 +29,15 @@ function TestModal() {
   const [editIndex, setEditIndex] = useState(null); 
   const [tasks, setTasks] = useState(() => {
     const savedTasks = localStorage.getItem('tasks');
-    return savedTasks ? JSON.parse(savedTasks) : [''];
+    return savedTasks ? JSON.parse(savedTasks) : [];
   });
-
+  useEffect(() => {
+    const savedTasks = localStorage.getItem('tasks');
+    if (savedTasks) {
+      setTasks(JSON.parse(savedTasks));
+    }
+  }, []);
+  
   // Add modal handlers
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -68,7 +74,8 @@ function TestModal() {
       return;
     }
   
-    const updatedTasks = [...tasks, validatedTask];
+    const newTask = { name: validatedTask, completed: false };
+    const updatedTasks = [...tasks, newTask];
     setTasks(updatedTasks);
     localStorage.setItem('tasks', JSON.stringify(updatedTasks));
     setTask('');
@@ -81,7 +88,7 @@ function TestModal() {
     const validatedTask = editTask.trim(); // Remove extra whitespace
   
     // Validation
-    if (!validatedTask) {
+    if (tasks.some(task => task.name === validatedTask)) {
       alert('Task name cannot be empty.');
       return;
     }
@@ -93,13 +100,13 @@ function TestModal() {
       alert('Task name must contain at least one letter.');
       return;
     }
-    if (tasks.some((t, i) => t === validatedTask && i !== editIndex)) {
+    if (tasks.some((t, i) => t.name === validatedTask && i !== editIndex)) {
       alert('Task name must be unique.');
       return;
     }
   
     const updatedTasks = [...tasks];
-    updatedTasks[editIndex] = validatedTask; 
+    updatedTasks[editIndex] = { ...updatedTasks[editIndex], name: validatedTask }; 
     setTasks(updatedTasks);
     localStorage.setItem('tasks', JSON.stringify(updatedTasks));
     setEditTask('');
@@ -107,7 +114,22 @@ function TestModal() {
     setEditOpen(false);
   };
   
-
+  const handleDeleteTask = (index) => {
+    const updatedTasks = tasks.filter((_, i) => i !== index);
+    setTasks(updatedTasks);
+    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+  };
+  
+  const handleToggleTaskCompletion = (index) => {
+    const updatedTasks = tasks.map((task, i) => {
+      if (i === index) {
+        return { ...task, completed: !task.completed }; 
+      }
+      return task;
+    });
+    setTasks(updatedTasks);
+    localStorage.setItem('tasks', JSON.stringify(updatedTasks)); 
+  };
   return (
     <div className="App">
       <h1>My Tasks</h1>
@@ -116,38 +138,34 @@ function TestModal() {
 
         <List>
           {tasks.map((task, index) => (
-            <ListItem
-              key={index}
-              className="list-item"
-              dense
-              secondaryAction={
-                <>
+            <ListItem key={index} className="list-item" dense secondaryAction={
+              <>
+                              
                   <IconButton
                     edge="end"
                     aria-label="edit"
-                    onClick={() => handleEditOpen(task, index)}
-                    
+                    onClick={() => handleEditOpen(task.name, index)}
                   >
                     <EditNoteIcon color="success" />
                   </IconButton>
+
                   <IconButton
                     edge="end"
                     aria-label="delete"
-                    onClick={() => {
-                      const updatedTasks = tasks.filter((_, i) => i !== index);
-                      setTasks(updatedTasks);
-                      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
-                    }}
+                    onClick={() => handleDeleteTask(index)}
                   >
                     <DeleteIcon fontSize="small" color="error" />
                   </IconButton>
-                </>
-              }
-            >
+              </>
+            }
+              >
+              
               <FormControlLabel
-                control={<Checkbox />}
-                label={<ListItemText primary={task} />}
+                control={<Checkbox checked={task.completed} onChange={() =>handleToggleTaskCompletion(index)}/>}
+                label={<ListItemText primary={task.name} />}
               />
+                
+             
             </ListItem>
           ))}
         </List>
