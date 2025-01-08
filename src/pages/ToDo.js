@@ -21,7 +21,7 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 
 import "../css/ToDo.css";
 
-function TestModal() {
+function Todo() {
   const [open, setOpen] = useState(false); 
   const [editOpen, setEditOpen] = useState(false); 
   const [task, setTask] = useState('');
@@ -31,12 +31,6 @@ function TestModal() {
     const savedTasks = localStorage.getItem('tasks');
     return savedTasks ? JSON.parse(savedTasks) : [];
   });
-  useEffect(() => {
-    const savedTasks = localStorage.getItem('tasks');
-    if (savedTasks) {
-      setTasks(JSON.parse(savedTasks));
-    }
-  }, []);
   
   // Add modal handlers
   const handleOpen = () => setOpen(true);
@@ -227,4 +221,4 @@ function TestModal() {
   );
 }
 
-export default TestModal;
+export default Todo;
